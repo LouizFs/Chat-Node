@@ -5,20 +5,33 @@ var server = app.listen(80, function (req, res) {
 })
 
 var io = require('socket.io').listen(server); // na porta 80 tanto req http como websockets serao recebidas e interpretadas
-app.set('io',io)
+app.set('io', io)
 
 /* criar conexao para o websocket */
-io.on('connection', function (socket) { 
+io.on('connection', function (socket) {
     console.log('O usuario conectou');
 
-    socket.on('disconnect', function(){
+    socket.on('disconnect', function () {
         console.log('usuario desconectado')
     });
-    socket.on('msgParaServidor', function(data){
-        socket.emit('msgParaCliente', {apelido: data.apelido, mensagem: data.mensagem})
-    })
-    socket.broadcast.on('msgParaServidor', function(data){
-        socket.emit('msgParaCliente', {apelido: data.apelido, mensagem: data.mensagem})
+
+
+
+    socket.on('msgParaServidor', function (data) {
+        socket.emit('msgParaCliente',
+            { apelido: data.apelido, mensagem: data.mensagem })
+
+        socket.broadcast.emit('msgParaCliente',
+            { apelido: data.apelido, mensagem: data.mensagem }
+        )
+        if (parseInt(data.apelido_atualizado_nos_clientes) == 0) {
+            socket.emit('participantesParaCliente',
+                { apelido: data.apelido }
+            )
+            socket.broadcast.emit('participantesParaCliente',
+                { apelido: data.apelido }
+            )
+        }
     })
 });
 
